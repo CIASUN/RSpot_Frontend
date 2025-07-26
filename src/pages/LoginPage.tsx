@@ -11,7 +11,7 @@ export default function LoginPage() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const response = await axios.post('http://localhost:5001/api/auth/login', {
+      const response = await axios.post('http://localhost:5001/api/users/login', {
         email,
         password,
       });
@@ -19,7 +19,17 @@ export default function LoginPage() {
       const token = response.data.token;
       localStorage.setItem('token', token);
 
-      navigate('/admin/places');
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      const role =
+        payload["role"] ||
+        payload["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"];
+
+      if (role === 'Admin') {
+        navigate('/admin/places');
+      } else {
+        navigate('/');
+      }
+
     } catch (err) {
       setError('Неверный логин или пароль');
     }
