@@ -1,4 +1,3 @@
-console.log('UserDashboardPage loaded');
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 
@@ -19,35 +18,70 @@ interface Workspace {
 const UserDashboardPage: React.FC = () => {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
+  const [selectedWorkspace, setSelectedWorkspace] = useState<Workspace | null>(null);
+  const [startTime, setStartTime] = useState('');
+  const [endTime, setEndTime] = useState('');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
 
-const fetchData = async () => {
-  try {
-    const workspacesResponse = await axios.get('http://localhost:5002/api/Place/workspaces');
-    console.log('Ответ от сервера:', workspacesResponse.data);
-    setWorkspaces(workspacesResponse.data);
-  } catch (error) {
-    console.error('Ошибка при получении рабочих мест:', error);
-  }
+    const fetchData = async () => {
+      try {
+        const workspacesResponse = await axios.get('http://localhost:5002/api/Place/workspaces');
+        setWorkspaces(workspacesResponse.data);
+      } catch (error) {
+        console.error('Ошибка при получении рабочих мест:', error);
+      }
 
-  try {
-	  console.log('JWT token:', token);
-    const bookingsResponse = await axios.get('http://localhost:5003/api/bookings/my', {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    setBookings(bookingsResponse.data);
-  } catch (error) {
-    console.error('Ошибка при получении бронирований:', error);
-  } finally {
-    setLoading(false);
-  }
-};
+      try {
+        const bookingsResponse = await axios.get('http://localhost:5003/api/bookings/my', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setBookings(bookingsResponse.data);
+      } catch (error) {
+        console.error('Ошибка при получении бронирований:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
     fetchData();
   }, []);
+
+  const handleBookingSubmit = async () => {
+    const token = localStorage.getItem('token');
+    if (!selectedWorkspace || !startTime || !endTime) return;
+
+    try {
+      await axios.post(
+        'http://localhost:5003/api/bookings',
+        {
+          workspaceId: selectedWorkspace.id,
+          startTime,
+          endTime,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      alert('Бронирование успешно!');
+      setSelectedWorkspace(null);
+      setStartTime('');
+      setEndTime('');
+      // Обновим список бронирований
+      const bookingsResponse = await axios.get('http://localhost:5003/api/bookings/my', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setBookings(bookingsResponse.data);
+    } catch (error) {
+      console.error('Ошибка при бронировании:', error);
+      alert('Ошибка при бронировании');
+    }
+  };
 
   return (
     <div className="p-4">
@@ -76,14 +110,68 @@ const fetchData = async () => {
         <ul className="space-y-2">
           {workspaces.map((ws) => (
             <li key={ws.id} className="border p-3 rounded shadow">
-              <strong>{ws.title}</strong> —{' '}
-              <span className="text-sm text-gray-600">{ws.view}</span>
-              {ws.description && <p>{ws.description}</p>}
+              <div className="flex justify-between items-center">
+                <div>
+                  <strong>{ws.title}</strong> —{' '}
+                  <span className="text-sm text-gray-600">{ws.view}</span>
+                  {ws.description && <p>{ws.description}</p>}
+                </div>
+                <button
+                  className="bg-blue-600 text-white px-3 py-1 rounded"
+                  onClick={() => setSelectedWorkspace(ws)}
+                >
+                  Забронировать
+                </button>
+              </div>
             </li>
           ))}
         </ul>
       ) : (
         <p>Нет доступных мест.</p>
+      )}
+
+      {selectedWorkspace && (
+        <div className="mt-6 p-4 border rounded bg-gray-50">
+          <h3 className="text-xl font-semibold mb-4">
+            Бронирование: {selectedWorkspace.title}
+          </h3>
+
+          <div className="mb-4">
+            <label className="block mb-2">
+              Начало:
+              <input
+                type="datetime-local"
+                value={startTime}
+                onChange={(e) => setStartTime(e.target.value)}
+                className="block w-full mt-1 p-2 border rounded"
+              />
+            </label>
+            <label className="block mb-2">
+              Конец:
+              <input
+                type="datetime-local"
+                value={endTime}
+                onChange={(e) => setEndTime(e.target.value)}
+                className="block w-full mt-1 p-2 border rounded"
+              />
+            </label>
+          </div>
+
+          <div className="flex gap-4">
+            <button
+              className="bg-green-600 text-white px-4 py-2 rounded"
+              onClick={handleBookingSubmit}
+            >
+              Подтвердить
+            </button>
+            <button
+              className="bg-gray-400 text-white px-4 py-2 rounded"
+              onClick={() => setSelectedWorkspace(null)}
+            >
+              Отмена
+            </button>
+          </div>
+        </div>
       )}
     </div>
   );
