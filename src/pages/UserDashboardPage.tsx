@@ -18,10 +18,8 @@ interface Workspace {
 const UserDashboardPage: React.FC = () => {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
-  const [selectedWorkspace, setSelectedWorkspace] = useState<Workspace | null>(null);
-  const [startTime, setStartTime] = useState('');
-  const [endTime, setEndTime] = useState('');
   const [loading, setLoading] = useState(true);
+  const [selectedDates, setSelectedDates] = useState<Record<string, { start: string; end: string }>>({});
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -49,38 +47,42 @@ const UserDashboardPage: React.FC = () => {
     fetchData();
   }, []);
 
-  const handleBookingSubmit = async () => {
+  const handleBooking = async (workspaceId: string) => {
     const token = localStorage.getItem('token');
-    if (!selectedWorkspace || !startTime || !endTime) return;
+    const selected = selectedDates[workspaceId];
+
+    if (!selected?.start || !selected?.end) {
+      alert('Пожалуйста, выберите дату начала и окончания бронирования.');
+      return;
+    }
 
     try {
       await axios.post(
         'http://localhost:5003/api/bookings',
         {
-          workspaceId: selectedWorkspace.id,
-          startTime,
-          endTime,
+          workspaceId,
+          startTime: selected.start,
+          endTime: selected.end,
         },
         {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          headers: { Authorization: `Bearer ${token}` },
         }
       );
-
       alert('Бронирование успешно!');
-      setSelectedWorkspace(null);
-      setStartTime('');
-      setEndTime('');
-      // Обновим список бронирований
-      const bookingsResponse = await axios.get('http://localhost:5003/api/bookings/my', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setBookings(bookingsResponse.data);
     } catch (error) {
       console.error('Ошибка при бронировании:', error);
-      alert('Ошибка при бронировании');
+      alert('Не удалось забронировать место.');
     }
+  };
+
+  const handleDateChange = (workspaceId: string, type: 'start' | 'end', value: string) => {
+    setSelectedDates((prev) => ({
+      ...prev,
+      [workspaceId]: {
+        ...prev[workspaceId],
+        [type]: value,
+      },
+    }));
   };
 
   return (
@@ -107,18 +109,36 @@ const UserDashboardPage: React.FC = () => {
       {loading ? (
         <p>Загрузка...</p>
       ) : Array.isArray(workspaces) && workspaces.length > 0 ? (
-        <ul className="space-y-2">
+        <ul className="space-y-4">
           {workspaces.map((ws) => (
-            <li key={ws.id} className="border p-3 rounded shadow">
-              <div className="flex justify-between items-center">
-                <div>
-                  <strong>{ws.title}</strong> —{' '}
-                  <span className="text-sm text-gray-600">{ws.view}</span>
-                  {ws.description && <p>{ws.description}</p>}
-                </div>
+            <li key={ws.id} className="border p-4 rounded shadow">
+              <strong>{ws.title}</strong> — <span className="text-sm text-gray-600">{ws.view}</span>
+              {ws.description && <p className="text-sm">{ws.description}</p>}
+
+              <div className="mt-2 flex flex-col gap-2">
+                <label>
+                  Начало:
+                  <input
+                    type="datetime-local"
+                    className="ml-2 border rounded px-2 py-1"
+                    value={selectedDates[ws.id]?.start || ''}
+                    onChange={(e) => handleDateChange(ws.id, 'start', e.target.value)}
+                  />
+                </label>
+
+                <label>
+                  Конец:
+                  <input
+                    type="datetime-local"
+                    className="ml-2 border rounded px-2 py-1"
+                    value={selectedDates[ws.id]?.end || ''}
+                    onChange={(e) => handleDateChange(ws.id, 'end', e.target.value)}
+                  />
+                </label>
+
                 <button
-                  className="bg-blue-600 text-white px-3 py-1 rounded"
-                  onClick={() => setSelectedWorkspace(ws)}
+                  className="mt-2 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+                  onClick={() => handleBooking(ws.id)}
                 >
                   Забронировать
                 </button>
@@ -128,50 +148,6 @@ const UserDashboardPage: React.FC = () => {
         </ul>
       ) : (
         <p>Нет доступных мест.</p>
-      )}
-
-      {selectedWorkspace && (
-        <div className="mt-6 p-4 border rounded bg-gray-50">
-          <h3 className="text-xl font-semibold mb-4">
-            Бронирование: {selectedWorkspace.title}
-          </h3>
-
-          <div className="mb-4">
-            <label className="block mb-2">
-              Начало:
-              <input
-                type="datetime-local"
-                value={startTime}
-                onChange={(e) => setStartTime(e.target.value)}
-                className="block w-full mt-1 p-2 border rounded"
-              />
-            </label>
-            <label className="block mb-2">
-              Конец:
-              <input
-                type="datetime-local"
-                value={endTime}
-                onChange={(e) => setEndTime(e.target.value)}
-                className="block w-full mt-1 p-2 border rounded"
-              />
-            </label>
-          </div>
-
-          <div className="flex gap-4">
-            <button
-              className="bg-green-600 text-white px-4 py-2 rounded"
-              onClick={handleBookingSubmit}
-            >
-              Подтвердить
-            </button>
-            <button
-              className="bg-gray-400 text-white px-4 py-2 rounded"
-              onClick={() => setSelectedWorkspace(null)}
-            >
-              Отмена
-            </button>
-          </div>
-        </div>
       )}
     </div>
   );
