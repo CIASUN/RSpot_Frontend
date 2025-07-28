@@ -3,10 +3,16 @@ import axios from 'axios';
 
 interface Booking {
   id: string;
-  workspaceName: string;
+  workspaceId: string;
   startTime: string;
   endTime: string;
+  workspace: {
+    id: string;
+    name: string;
+    location: string;
+  };
 }
+
 
 interface Workspace {
   id: string;
@@ -96,11 +102,11 @@ const UserDashboardPage: React.FC = () => {
       ) : (
         <ul className="mb-6 space-y-2">
           {bookings.map((b) => (
-            <li key={b.id} className="border p-3 rounded shadow">
-              <strong>{b.workspaceName}</strong> — {new Date(b.startTime).toLocaleString()} -{' '}
-              {new Date(b.endTime).toLocaleString()}
-            </li>
-          ))}
+		  <li key={b.id} className="border p-3 rounded shadow">
+			<strong>{b.workspace?.name}</strong> — {b.workspace?.location}<br />
+			{new Date(b.startTime).toLocaleString()} – {new Date(b.endTime).toLocaleString()}
+		  </li>
+		))}
         </ul>
       )}
 
