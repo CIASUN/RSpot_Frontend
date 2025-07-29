@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
 interface Booking {
@@ -13,7 +14,6 @@ interface Booking {
   };
 }
 
-
 interface Workspace {
   id: string;
   title: string;
@@ -26,6 +26,7 @@ const UserDashboardPage: React.FC = () => {
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedDates, setSelectedDates] = useState<Record<string, { start: string; end: string }>>({});
+  const navigate = useNavigate();
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -91,9 +92,22 @@ const UserDashboardPage: React.FC = () => {
     }));
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    navigate('/login');
+  };
+
   return (
     <div className="p-4">
-      <h2 className="text-2xl font-bold mb-4">Ваши брони</h2>
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-2xl font-bold">Ваши брони</h2>
+        <button
+          onClick={handleLogout}
+          className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
+        >
+          Выйти
+        </button>
+      </div>
 
       {loading ? (
         <p>Загрузка...</p>
@@ -102,11 +116,12 @@ const UserDashboardPage: React.FC = () => {
       ) : (
         <ul className="mb-6 space-y-2">
           {bookings.map((b) => (
-		  <li key={b.id} className="border p-3 rounded shadow">
-			<strong>{b.workspace?.name}</strong> — {b.workspace?.location}<br />
-			{new Date(b.startTime).toLocaleString()} – {new Date(b.endTime).toLocaleString()}
-		  </li>
-		))}
+            <li key={b.id} className="border p-3 rounded shadow">
+              <strong>{b.workspace?.name}</strong> — {b.workspace?.location}
+              <br />
+              {new Date(b.startTime).toLocaleString()} – {new Date(b.endTime).toLocaleString()}
+            </li>
+          ))}
         </ul>
       )}
 
