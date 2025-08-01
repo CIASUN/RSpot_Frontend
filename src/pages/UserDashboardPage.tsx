@@ -9,10 +9,12 @@ interface Booking {
   endTime: string;
   workspace: {
     id: string;
-    name: string;
-    location: string;
+    organizationId: string;
+    title: string;
+    view: string;
   };
 }
+
 
 interface Workspace {
   id: string;
@@ -117,7 +119,7 @@ const UserDashboardPage: React.FC = () => {
         <ul className="mb-6 space-y-2">
           {bookings.map((b) => (
             <li key={b.id} className="border p-3 rounded shadow">
-              <strong>{b.workspace?.name}</strong> — {b.workspace?.location}
+              <strong>{b.workspace?.title}</strong> — {b.workspace?.view}
               <br />
               {new Date(b.startTime).toLocaleString()} – {new Date(b.endTime).toLocaleString()}
             </li>
