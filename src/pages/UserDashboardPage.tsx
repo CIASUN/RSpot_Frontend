@@ -15,7 +15,6 @@ interface Booking {
   };
 }
 
-
 interface Workspace {
   id: string;
   title: string;
@@ -101,8 +100,9 @@ const UserDashboardPage: React.FC = () => {
 
   return (
     <div className="p-4">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-2xl font-bold">Ваши брони</h2>
+      {/* Header with logout */}
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-2xl font-bold">Личный кабинет</h2>
         <button
           onClick={handleLogout}
           className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
@@ -111,66 +111,87 @@ const UserDashboardPage: React.FC = () => {
         </button>
       </div>
 
+      {/* Bookings Table */}
+      <h3 className="text-xl font-semibold mb-2">Мои бронирования</h3>
       {loading ? (
         <p>Загрузка...</p>
       ) : bookings.length === 0 ? (
         <p>Нет активных броней.</p>
       ) : (
-        <ul className="mb-6 space-y-2">
-          {bookings.map((b) => (
-            <li key={b.id} className="border p-3 rounded shadow">
-              <strong>{b.workspace?.title}</strong> — {b.workspace?.view}
-              <br />
-              {new Date(b.startTime).toLocaleString()} – {new Date(b.endTime).toLocaleString()}
-            </li>
-          ))}
-        </ul>
+        <table className="table-auto w-full mb-6 border border-gray-300">
+          <thead className="bg-gray-100">
+            <tr>
+              <th className="border px-4 py-2">Рабочее место</th>
+              <th className="border px-4 py-2">Локация</th>
+              <th className="border px-4 py-2">Начало</th>
+              <th className="border px-4 py-2">Окончание</th>
+            </tr>
+          </thead>
+          <tbody>
+            {bookings.map((b) => (
+              <tr key={b.id}>
+                <td className="border px-4 py-2">{b.workspace?.title}</td>
+                <td className="border px-4 py-2">{b.workspace?.view}</td>
+                <td className="border px-4 py-2">{new Date(b.startTime).toLocaleString()}</td>
+                <td className="border px-4 py-2">{new Date(b.endTime).toLocaleString()}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       )}
 
-      <h2 className="text-2xl font-bold mb-4">Доступные рабочие места</h2>
-
+      {/* Workspaces Table */}
+      <h3 className="text-xl font-semibold mb-2">Доступные рабочие места</h3>
       {loading ? (
         <p>Загрузка...</p>
-      ) : Array.isArray(workspaces) && workspaces.length > 0 ? (
-        <ul className="space-y-4">
-          {workspaces.map((ws) => (
-            <li key={ws.id} className="border p-4 rounded shadow">
-              <strong>{ws.title}</strong> — <span className="text-sm text-gray-600">{ws.view}</span>
-              {ws.description && <p className="text-sm">{ws.description}</p>}
-
-              <div className="mt-2 flex flex-col gap-2">
-                <label>
-                  Начало:
+      ) : workspaces.length === 0 ? (
+        <p>Нет доступных мест.</p>
+      ) : (
+        <table className="table-auto w-full border border-gray-300">
+          <thead className="bg-gray-100">
+            <tr>
+              <th className="border px-4 py-2">Название</th>
+              <th className="border px-4 py-2">Локация</th>
+              <th className="border px-4 py-2">Описание</th>
+              <th className="border px-4 py-2">Начало</th>
+              <th className="border px-4 py-2">Окончание</th>
+              <th className="border px-4 py-2">Действие</th>
+            </tr>
+          </thead>
+          <tbody>
+            {workspaces.map((ws) => (
+              <tr key={ws.id}>
+                <td className="border px-4 py-2">{ws.title}</td>
+                <td className="border px-4 py-2">{ws.view}</td>
+                <td className="border px-4 py-2">{ws.description || '-'}</td>
+                <td className="border px-4 py-2">
                   <input
                     type="datetime-local"
-                    className="ml-2 border rounded px-2 py-1"
+                    className="border px-2 py-1 rounded"
                     value={selectedDates[ws.id]?.start || ''}
                     onChange={(e) => handleDateChange(ws.id, 'start', e.target.value)}
                   />
-                </label>
-
-                <label>
-                  Конец:
+                </td>
+                <td className="border px-4 py-2">
                   <input
                     type="datetime-local"
-                    className="ml-2 border rounded px-2 py-1"
+                    className="border px-2 py-1 rounded"
                     value={selectedDates[ws.id]?.end || ''}
                     onChange={(e) => handleDateChange(ws.id, 'end', e.target.value)}
                   />
-                </label>
-
-                <button
-                  className="mt-2 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-                  onClick={() => handleBooking(ws.id)}
-                >
-                  Забронировать
-                </button>
-              </div>
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <p>Нет доступных мест.</p>
+                </td>
+                <td className="border px-4 py-2">
+                  <button
+                    className="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700"
+                    onClick={() => handleBooking(ws.id)}
+                  >
+                    Забронировать
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       )}
     </div>
   );

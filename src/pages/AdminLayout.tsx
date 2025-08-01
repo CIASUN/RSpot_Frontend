@@ -47,21 +47,40 @@ export default function AdminLayout() {
         </button>
       </div>
 
-      <ul className="space-y-4">
-        {workspaces.map((ws) => (
-          <li key={ws.id} className="border p-4 rounded shadow flex justify-between items-center">
-            <div>
-              <p className="font-semibold">{ws.title}</p>
-              <p className="text-sm text-gray-600">{ws.view}</p>
-              <p className="text-sm">Вместимость: {ws.capacity}, Этаж: {ws.floor}</p>
-              {ws.description && <p className="text-sm italic">{ws.description}</p>}
-            </div>
-            <button className="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700">
-              Удалить
-            </button>
-          </li>
-        ))}
-      </ul>
+      <div className="overflow-x-auto">
+        <table className="min-w-full bg-white shadow border rounded-lg">
+          <thead className="bg-gray-100">
+            <tr>
+              <th className="text-left px-4 py-2">Название</th>
+              <th className="text-left px-4 py-2">Локация</th>
+              <th className="text-left px-4 py-2">Вместимость</th>
+              <th className="text-left px-4 py-2">Этаж</th>
+              <th className="text-left px-4 py-2">Розетки</th>
+              <th className="text-left px-4 py-2">Тихая зона</th>
+              <th className="text-left px-4 py-2">Описание</th>
+              <th className="text-left px-4 py-2">Действия</th>
+            </tr>
+          </thead>
+          <tbody>
+            {workspaces.map((ws) => (
+              <tr key={ws.id} className="border-t hover:bg-gray-50">
+                <td className="px-4 py-2 font-medium">{ws.title}</td>
+                <td className="px-4 py-2">{ws.view}</td>
+                <td className="px-4 py-2">{ws.capacity}</td>
+                <td className="px-4 py-2">{ws.floor}</td>
+                <td className="px-4 py-2">{ws.hasSocket ? 'Да' : 'Нет'}</td>
+                <td className="px-4 py-2">{ws.isQuietZone ? 'Да' : 'Нет'}</td>
+                <td className="px-4 py-2 italic text-sm">{ws.description || '-'}</td>
+                <td className="px-4 py-2">
+                  <button className="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700">
+                    Удалить
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
