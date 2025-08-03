@@ -29,34 +29,38 @@ const UserDashboardPage: React.FC = () => {
   const [selectedDates, setSelectedDates] = useState<Record<string, { start: string; end: string }>>({});
   const navigate = useNavigate();
 
+  const token = localStorage.getItem('token');
+
+  const fetchBookings = async () => {
+    try {
+      const response = await axios.get('http://localhost:5003/api/bookings/my', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setBookings(response.data);
+    } catch (error) {
+      console.error('Ошибка при получении бронирований:', error);
+    }
+  };
+
+  const fetchWorkspaces = async () => {
+    try {
+      const response = await axios.get('http://localhost:5002/api/Place/workspaces');
+      setWorkspaces(response.data);
+    } catch (error) {
+      console.error('Ошибка при получении рабочих мест:', error);
+    }
+  };
+
   useEffect(() => {
-    const token = localStorage.getItem('token');
-
     const fetchData = async () => {
-      try {
-        const workspacesResponse = await axios.get('http://localhost:5002/api/Place/workspaces');
-        setWorkspaces(workspacesResponse.data);
-      } catch (error) {
-        console.error('Ошибка при получении рабочих мест:', error);
-      }
-
-      try {
-        const bookingsResponse = await axios.get('http://localhost:5003/api/bookings/my', {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setBookings(bookingsResponse.data);
-      } catch (error) {
-        console.error('Ошибка при получении бронирований:', error);
-      } finally {
-        setLoading(false);
-      }
+      await Promise.all([fetchWorkspaces(), fetchBookings()]);
+      setLoading(false);
     };
 
     fetchData();
   }, []);
 
   const handleBooking = async (workspaceId: string) => {
-    const token = localStorage.getItem('token');
     const selected = selectedDates[workspaceId];
 
     if (!selected?.start || !selected?.end) {
@@ -76,7 +80,9 @@ const UserDashboardPage: React.FC = () => {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
+
       alert('Бронирование успешно!');
+      await fetchBookings(); // <-- обновляем бронирования
     } catch (error) {
       console.error('Ошибка при бронировании:', error);
       alert('Не удалось забронировать место.');
