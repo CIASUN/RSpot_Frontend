@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -29,7 +29,6 @@ export default function LoginPage() {
       } else {
         navigate('/');
       }
-
     } catch (err) {
       setError('Неверный логин или пароль');
     }
@@ -59,6 +58,12 @@ export default function LoginPage() {
         <button type="submit" className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700">
           Войти
         </button>
+        <p className="mt-4 text-center text-sm">
+          Нет аккаунта?{' '}
+          <Link to="/register" className="text-blue-600 hover:underline">
+            Зарегистрироваться
+          </Link>
+        </p>
       </form>
     </div>
   );

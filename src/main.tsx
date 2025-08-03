@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 
 import LoginPage from './pages/LoginPage';
+import RegisterPage from './pages/RegisterPage';
 import UserDashboardPage from './pages/UserDashboardPage';
 import AdminPlacesPage from './pages/AdminLayout';
 import UnauthorizedPage from './pages/UnauthorizedPage';
@@ -15,6 +16,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
       <Routes>
         {/* Публичные маршруты */}
         <Route path="/login" element={<LoginPage />} />
+		<Route path="/register" element={<RegisterPage />} />
         <Route path="/unauthorized" element={<UnauthorizedPage />} />
 
         {/* Приватные маршруты для User */}
