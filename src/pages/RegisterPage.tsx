@@ -21,7 +21,7 @@ export default function RegisterPage() {
     }
 
     try {
-      const response = await axios.post('http://localhost:5001/api/users/register', {
+      await axios.post('http://localhost:5001/api/users/register', {
         email,
         password,
       });

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { v4 as uuidv4 } from 'uuid';
+import { jwtDecode } from 'jwt-decode';
 
 interface Workspace {
   id?: string;
@@ -20,6 +21,36 @@ interface Organization {
   name: string;
   address: string;
 }
+
+const getCurrentUserId = (): string | null => {
+  const token = localStorage.getItem('token');
+  if (!token) return null;
+
+  try {
+    const decoded: any = jwtDecode(token);
+    return decoded.sub || null;
+  } catch (err) {
+    console.error('Ошибка при декодировании токена:', err);
+    return null;
+  }
+};
+
+
+const handleDecodeToken = () => {
+  const token = localStorage.getItem('token');
+  if (!token) {
+    alert('Токен не найден в localStorage');
+    return;
+  }
+
+  try {
+    const decoded = jwtDecode(token);
+    alert('Декодированный токен:\n' + JSON.stringify(decoded, null, 2));
+  } catch (err) {
+    console.error('Ошибка при декодировании токена:', err);
+    alert('Ошибка при декодировании токена');
+  }
+};
 
 export default function AdminLayout() {
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
@@ -102,21 +133,33 @@ export default function AdminLayout() {
     }
   };
 
-  const handleAddOrganization = async () => {
-    if (!newOrg.name.trim() || !newOrg.address.trim()) {
-      alert('Пожалуйста, заполните все поля организации.');
-      return;
-    }
-    try {
-      await axios.post('http://localhost:5002/api/place/organizations', newOrg);
-      setNewOrg({ name: '', address: '' });
-      alert('Организация добавлена');
-      fetchOrganizations();
-    } catch (error) {
-      console.error('Ошибка при добавлении организации:', error);
-      alert('Ошибка при добавлении организации');
-    }
-  };
+const handleAddOrganization = async () => {
+  if (!newOrg.name.trim() || !newOrg.address.trim()) {
+    alert('Пожалуйста, заполните все поля организации.');
+    return;
+  }
+
+  const currentUserId = getCurrentUserId();
+  if (!currentUserId) {
+    alert('Не удалось получить ID текущего пользователя. Возможно, вы не авторизованы.');
+    return;
+  }
+
+  try {
+    await axios.post('http://localhost:5002/api/place/organizations', {
+      name: newOrg.name,
+      address: newOrg.address,
+      ownerUserId: currentUserId,
+    });
+    setNewOrg({ name: '', address: '' });
+    alert('Организация добавлена');
+    fetchOrganizations();
+  } catch (error) {
+    console.error('Ошибка при добавлении организации:', error);
+    alert('Ошибка при добавлении организации');
+  }
+};
+
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -125,15 +168,24 @@ export default function AdminLayout() {
 
   return (
     <div className="p-4 space-y-8">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">Управление пространствами (Admin)</h1>
-        <button
-          onClick={handleLogout}
-          className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded"
-        >
-          Выйти
-        </button>
-      </div>
+<div className="flex justify-between items-center gap-4">
+  <h1 className="text-2xl font-bold">Управление пространствами (Admin)</h1>
+  <div className="flex gap-2">
+    <button
+      onClick={handleDecodeToken}
+      className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded"
+    >
+      Декодировать токен
+    </button>
+    <button
+      onClick={handleLogout}
+      className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded"
+    >
+      Выйти
+    </button>
+  </div>
+</div>
+
 
       {/* Создание новой организации */}
       <div className="bg-white p-4 rounded shadow">
