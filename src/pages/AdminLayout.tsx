@@ -36,22 +36,6 @@ const getCurrentUserId = (): string | null => {
 };
 
 
-const handleDecodeToken = () => {
-  const token = localStorage.getItem('token');
-  if (!token) {
-    alert('Токен не найден в localStorage');
-    return;
-  }
-
-  try {
-    const decoded = jwtDecode(token);
-    alert('Декодированный токен:\n' + JSON.stringify(decoded, null, 2));
-  } catch (err) {
-    console.error('Ошибка при декодировании токена:', err);
-    alert('Ошибка при декодировании токена');
-  }
-};
-
 export default function AdminLayout() {
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
   const [organizations, setOrganizations] = useState<Organization[]>([]);
@@ -171,12 +155,6 @@ const handleAddOrganization = async () => {
 <div className="flex justify-between items-center gap-4">
   <h1 className="text-2xl font-bold">Управление пространствами (Admin)</h1>
   <div className="flex gap-2">
-    <button
-      onClick={handleDecodeToken}
-      className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded"
-    >
-      Декодировать токен
-    </button>
     <button
       onClick={handleLogout}
       className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded"
