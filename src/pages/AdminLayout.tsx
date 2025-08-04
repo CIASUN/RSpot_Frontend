@@ -304,6 +304,7 @@ export default function AdminLayout() {
         <table className="min-w-full bg-white shadow border rounded-lg">
           <thead className="bg-gray-100">
             <tr>
+			  <th className="text-left px-4 py-2">Организация</th>
               <th className="text-left px-4 py-2">Название</th>
               <th className="text-left px-4 py-2">Локация</th>
               <th className="text-left px-4 py-2">Вместимость</th>
@@ -317,6 +318,11 @@ export default function AdminLayout() {
           <tbody>
             {workspaces.map((ws) => (
               <tr key={ws.id} className="border-t hover:bg-gray-50">
+			    <td className="px-4 py-2">
+				  {
+					organizations.find((org) => org.id === ws.organizationId)?.name || '—'
+				  }
+				</td>
                 <td className="px-4 py-2">{ws.title}</td>
                 <td className="px-4 py-2">{ws.view}</td>
                 <td className="px-4 py-2">{ws.capacity}</td>
